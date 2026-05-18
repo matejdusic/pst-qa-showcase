@@ -1,0 +1,23 @@
+{
+  "name": "pst-qa-showcase",
+  "version": "1.0.0",
+  "scripts": {
+    "test:anonymous": "playwright test --project=anonymous",
+    "test:auth": "playwright test --project=setup --project=authenticated",
+    "test:mobile": "playwright test --project=mobile",
+    "test:visual": "playwright test --project=visual",
+    "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "test:api": "playwright test --project=api",
+    "test:integration": "playwright test --project=integration",
+    "test:mock": "playwright test --project=mock",
+    "test:a11y": "playwright test --project=a11y",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.9.0",
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}
