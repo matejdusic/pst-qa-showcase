@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/pageFixtures';
 
 // Stable product ID on practicesoftwaretesting.com (Combination Pliers)
-const PRODUCT_ID = '01KRXJRPSQT6WT1J2VKCH86Y82';
+const PRODUCT_ID = '01KRZM041Y6PJ5NSD95ET3KWPN';
 
 test.describe('Product — Detail Page', () => {
   test('TC-006: product detail page loads', async ({ productPage }) => {

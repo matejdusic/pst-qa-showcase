@@ -2,6 +2,7 @@ import { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class CartPage extends BasePage {
+  readonly pageTitle: Locator;
   readonly cartItems: Locator;
   readonly totalPrice: Locator;
   readonly proceedButton: Locator;
@@ -11,6 +12,7 @@ export class CartPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
+    this.pageTitle = page.locator('[data-test="page-title"]');
     this.cartItems = page.locator('[data-test="cart-item"]');
     this.totalPrice = page.locator('[data-test="cart-total"]');
     this.proceedButton = page.locator('[data-test="proceed-1"]');
@@ -21,6 +23,13 @@ export class CartPage extends BasePage {
 
   async goto(): Promise<void> {
     await this.page.goto('/cart');
+    // Wait for the cart page chrome to render. Either the page title appears
+    // or the cart-empty / items state. Whichever lands first.
+    await Promise.race([
+      this.pageTitle.waitFor({ timeout: 10000 }),
+      this.cartItems.first().waitFor({ timeout: 10000 }),
+      this.emptyCartMessage.waitFor({ timeout: 10000 }),
+    ]).catch(() => null);
   }
 
   async getItemCount(): Promise<number> {

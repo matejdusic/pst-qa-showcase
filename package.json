@@ -2,6 +2,7 @@
   "name": "pst-qa-showcase",
   "version": "1.0.0",
   "scripts": {
+    "test": "playwright test",
     "test:anonymous": "playwright test --project=anonymous",
     "test:auth": "playwright test --project=setup --project=authenticated",
     "test:mobile": "playwright test --project=mobile",

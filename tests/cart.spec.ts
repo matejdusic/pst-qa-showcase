@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/pageFixtures';
 import { addProductToCart } from '../utils/testHelpers';
 
-const PRODUCT_ID = '01KRXJRPSQT6WT1J2VKCH86Y82';
+const PRODUCT_ID = '01KRZM041Y6PJ5NSD95ET3KWPN';
 
 test.describe('Cart', () => {
   test('TC-010: added item appears in cart', async ({ productPage, cartPage }) => {

@@ -3,29 +3,33 @@ import { BasePage } from './BasePage';
 
 export class HomePage extends BasePage {
   readonly header: Locator;
+  readonly mobileNavToggle: Locator;
   readonly productGrid: Locator;
   readonly productCards: Locator;
   readonly firstProductCard: Locator;
   readonly searchInput: Locator;
   readonly searchButton: Locator;
   readonly pageHeading: Locator;
-  readonly categoryLinks: Locator;
+  readonly categoriesNavButton: Locator;
   readonly pagination: Locator;
 
   constructor(page: Page) {
     super(page);
     this.header = page.locator('nav, header').first();
+    // Hamburger toggle exposed on mobile viewports; no data-test attr on the site.
+    this.mobileNavToggle = page.locator('.navbar-toggler');
     this.productGrid = page.locator('.col-md-9, [class*="products"], main').first();
     this.productCards = page.locator('[data-test="product-name"]');
     this.firstProductCard = this.productCards.first();
     this.searchInput = page.locator('[data-test="search-query"]');
     this.searchButton = page.locator('[data-test="search-submit"]');
     this.pageHeading = page.getByRole('heading', { level: 1 });
-    this.categoryLinks = page.locator('[data-test^="nav-"]');
+    // The "Categories" parent button — must be clicked before category items become visible.
+    this.categoriesNavButton = page.locator('[data-test="nav-categories"]');
     this.pagination = page.locator('[data-test="pagination"]');
   }
 
-  /** Returns a locator for a category nav link by its readable name. */
+  /** Returns a locator for a category nav link by its readable name (e.g. "hand-tools"). */
   categoryLink(name: string): Locator {
     const slug = name.toLowerCase().replace(/\s+/g, '-');
     return this.page.locator(`[data-test="nav-${slug}"]`);
@@ -35,12 +39,27 @@ export class HomePage extends BasePage {
     await this.page.goto('/');
   }
 
+  /**
+   * Open the mobile hamburger menu if the navbar is currently collapsed.
+   * On desktop viewports the navigation is always visible, so this is a no-op.
+   */
+  async openMobileNavIfNeeded(): Promise<void> {
+    if (!(await this.searchInput.isVisible())) {
+      await this.mobileNavToggle.click();
+      await this.searchInput.waitFor({ timeout: 5000 });
+    }
+  }
+
   async search(term: string): Promise<void> {
+    await this.openMobileNavIfNeeded();
     await this.searchInput.fill(term);
     await this.searchButton.click();
   }
 
   async filterByCategory(name: string): Promise<void> {
+    await this.openMobileNavIfNeeded();
+    // The Categories menu is a dropdown — open it before its items become clickable.
+    await this.categoriesNavButton.click();
     await this.categoryLink(name).click();
   }
 
