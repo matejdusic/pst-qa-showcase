@@ -21,7 +21,6 @@ export class CartPage extends BasePage {
 
   async goto(): Promise<void> {
     await this.page.goto('/cart');
-    await this.page.waitForLoadState('networkidle');
   }
 
   async getItemCount(): Promise<number> {
@@ -32,11 +31,17 @@ export class CartPage extends BasePage {
     const input = this.quantityInputs.nth(index);
     await input.fill(String(quantity));
     await input.press('Enter');
-    await this.page.waitForLoadState('networkidle');
   }
 
   async removeItem(index: number): Promise<void> {
+    const before = await this.cartItems.count();
     await this.deleteButtons.nth(index).click();
-    await this.page.waitForLoadState('networkidle');
+    // Cart updates client-side; wait for the row to actually disappear
+    // rather than a generic network signal.
+    await this.page.waitForFunction(
+      (n) => document.querySelectorAll('[data-test="cart-item"]').length < n,
+      before,
+      { timeout: 10000 }
+    );
   }
 }

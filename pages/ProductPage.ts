@@ -19,7 +19,7 @@ export class ProductPage extends BasePage {
 
   async goto(productId: string): Promise<void> {
     await this.page.goto(`/product/${productId}`);
-    await this.page.waitForLoadState('networkidle');
+    await this.productTitle.waitFor({ timeout: 15000 });
   }
 
   async addToCart(): Promise<void> {

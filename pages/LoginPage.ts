@@ -17,7 +17,7 @@ export class LoginPage extends BasePage {
 
   async goto(): Promise<void> {
     await this.page.goto('/auth/login');
-    await this.page.waitForLoadState('networkidle');
+    await this.emailInput.waitFor({ timeout: 15000 });
   }
 
   async login(email: string, password: string): Promise<void> {

@@ -25,7 +25,6 @@ export class CheckoutPage extends BasePage {
 
   async goto(): Promise<void> {
     await this.page.goto('/checkout');
-    await this.page.waitForLoadState('networkidle');
   }
 
   async placeOrder(): Promise<void> {

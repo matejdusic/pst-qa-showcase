@@ -33,25 +33,26 @@ export class HomePage extends BasePage {
 
   async goto(): Promise<void> {
     await this.page.goto('/');
-    await this.page.waitForLoadState('networkidle');
   }
 
   async search(term: string): Promise<void> {
     await this.searchInput.fill(term);
     await this.searchButton.click();
-    await this.page.waitForLoadState('networkidle');
   }
 
   async filterByCategory(name: string): Promise<void> {
     await this.categoryLink(name).click();
-    await this.page.waitForLoadState('networkidle');
   }
 
   async clickFirstProduct(): Promise<void> {
     await this.firstProductCard.click();
-    await this.page.waitForLoadState('networkidle');
   }
 
+  /**
+   * Wait until at least one product card is rendered. Use this instead of
+   * waitForLoadState('networkidle') — the PST React SPA holds open polling
+   * connections, so networkidle never resolves.
+   */
   async waitForProducts(): Promise<void> {
     await this.firstProductCard.waitFor({ timeout: 15000 });
   }
