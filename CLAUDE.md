@@ -227,7 +227,7 @@ This writes new PNG files into `tests/visual.spec.ts-snapshots/`. Commit the upd
 
 ## Known Good Product IDs
 
-`PRODUCT_ID = '01KRXJRPSQT6WT1J2VKCH86Y82'` is used across `product.spec.ts`, `cart.spec.ts`, and `a11y.spec.ts`. This is a stable product (Combination Pliers) confirmed to exist on practicesoftwaretesting.com.
+`PRODUCT_ID = '01KRZM041Y6PJ5NSD95ET3KWPN'` is used across `product.spec.ts`, `cart.spec.ts`, and `a11y.spec.ts`. This is the current Combination Pliers ID on practicesoftwaretesting.com — verified live via browser inspection. **Heads up:** the site can rotate IDs when seeded data is rebuilt, so if these tests start failing with "product-name not visible", re-fetch a fresh ID via the API.
 
 To find other stable IDs, query the API directly:
 
@@ -237,3 +237,25 @@ curl "https://api.practicesoftwaretesting.com/api/products" \
 ```
 
 Use the `id` field from the response as the product ID in `page.goto('/product/<id>')`.
+
+---
+
+## Known Site Defects
+
+These are real bugs on practicesoftwaretesting.com that our test suite detected and intentionally allowlists so the suite still passes on regressions to other rules. They are surfaced in the demo as findings.
+
+| ID         | Page        | Rule          | Detail                                                                                  |
+|------------|-------------|---------------|-----------------------------------------------------------------------------------------|
+| SITE-001   | /auth/login | `button-name` | Password-visibility toggle button has no accessible name (no aria-label, no inner text) |
+
+The allowlist lives in `tests/a11y.spec.ts` as `KNOWN_SITE_DEFECTS`. When the site fixes a defect, remove it from the list so the test starts catching regressions.
+
+---
+
+## Live Navigation Quirks (gotchas discovered against the live site)
+
+- **Categories dropdown.** `[data-test="nav-hand-tools"]` (and the other category items) live inside a Bootstrap dropdown that is hidden until `[data-test="nav-categories"]` is clicked. `HomePage.filterByCategory()` handles this — never click `nav-<category>` directly.
+- **User menu.** `[data-test="nav-sign-out"]` is inside a dropdown opened by `[data-test="nav-menu"]` (the "Jane Doe" button). `AccountPage.logout()` opens the menu first.
+- **Mobile navbar.** On Pixel 5 the search input and category nav are collapsed under a `.navbar-toggler` hamburger button. `HomePage.openMobileNavIfNeeded()` opens it before any mobile flow.
+- **SPA loading is asynchronous.** Every `goto()` waits for a specific element (product title, page title, email input) — `waitForLoadState('networkidle')` hangs forever because of long-polling.
+- **Cart writes are async.** `ProductPage.addToCart()` waits for the success toast before returning so `cartPage.goto()` doesn't race the cart-state update.
