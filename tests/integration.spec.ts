@@ -5,8 +5,7 @@ test.describe('Integration Flows', () => {
     await homePage.goto();
     await homePage.search('Pliers');
     await homePage.waitForProducts();
-    await homePage.productCards.first().click();
-    await homePage.waitForLoadState();
+    await homePage.clickFirstProduct();
     await productPage.addToCart();
     await cartPage.goto();
     const count = await cartPage.getItemCount();
@@ -15,11 +14,10 @@ test.describe('Integration Flows', () => {
 
   test('TC-028: login → account navigation flow', async ({ loginPage, accountPage, page }) => {
     await loginPage.goto();
-    await loginPage.login(
-      'customer@practicesoftwaretesting.com',
-      'welcome01'
+    await loginPage.loginAndWait(
+      process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+      process.env.SITE_PASSWORD || 'welcome01'
     );
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 15000 });
     await expect(page).not.toHaveURL(/auth\/login/);
     await expect.soft(accountPage.usernameHeading).toBeVisible();
   });

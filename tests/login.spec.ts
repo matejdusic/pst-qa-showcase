@@ -3,8 +3,8 @@ import { test, expect } from '../fixtures/pageFixtures';
 test.describe('Login', () => {
   test('TC-014: login form renders correctly', async ({ loginPage }) => {
     await loginPage.goto();
-    await expect(loginPage.emailInput).toBeVisible();
-    await expect(loginPage.passwordInput).toBeVisible();
+    await expect.soft(loginPage.emailInput).toBeVisible();
+    await expect.soft(loginPage.passwordInput).toBeVisible();
     await expect(loginPage.submitButton).toBeVisible();
   });
 
@@ -16,10 +16,10 @@ test.describe('Login', () => {
 
   test('TC-016: valid credentials redirect to account', async ({ loginPage, page }) => {
     await loginPage.goto();
-    await loginPage.login(
-      'customer@practicesoftwaretesting.com',
-      'welcome01'
+    await loginPage.loginAndWait(
+      process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+      process.env.SITE_PASSWORD || 'welcome01'
     );
-    await expect(page).toHaveURL(/\/(account|dashboard)/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/(account|dashboard)/);
   });
 });

@@ -17,4 +17,9 @@ export class AccountPage extends BasePage {
     await this.page.goto('/account');
     await this.page.waitForLoadState('networkidle');
   }
+
+  async logout(): Promise<void> {
+    await this.logoutButton.click();
+    await this.page.waitForLoadState('networkidle');
+  }
 }

@@ -13,7 +13,7 @@ This project is an agency-grade E2E automation showcase targeting **https://prac
 ```
 pst-qa-showcase/
 ├── pages/                  # Page Object Model classes — one per page/feature area
-│   ├── BasePage.ts         # Shared base: constructor receives page, exposes dismissOverlays()
+│   ├── BasePage.ts         # Shared base: receives the page, exposes waitForLoadState()
 │   ├── HomePage.ts         # Catalogue, search, category filter, product navigation
 │   ├── LoginPage.ts        # Login form interactions and error handling
 │   ├── ProductPage.ts      # Product detail: title, price, add-to-cart, description
@@ -38,7 +38,7 @@ pst-qa-showcase/
 │   └── a11y.spec.ts        # TC-031–033: WCAG 2.0 axe-core critical violation checks
 │
 ├── utils/
-│   └── testHelpers.ts      # Shared helpers: navigateToProduct, waitForCatalogue, getCriticalViolations
+│   └── testHelpers.ts      # Shared helpers: addProductToCart, getCriticalViolations
 │
 ├── auth.setup.ts           # Playwright setup project: logs in, writes playwright/.auth/user.json
 ├── playwright.config.ts    # All project definitions, baseURL, timeouts, reporter
@@ -96,7 +96,7 @@ import { test, expect } from '../fixtures/pageFixtures';
 import { test, expect } from '@playwright/test';
 ```
 
-Exception: `visual.spec.ts`, `api.spec.ts`, `mock.spec.ts`, and `a11y.spec.ts` import from `@playwright/test` directly because they do not use POM fixtures.
+Exception: `api.spec.ts` imports from `@playwright/test` directly because it runs without a browser context. Every other spec — including `visual.spec.ts`, `mock.spec.ts`, and `a11y.spec.ts` — imports from `../fixtures/pageFixtures` and consumes page objects.
 
 ### 3. Locators are readonly properties declared in the constructor
 
@@ -180,8 +180,9 @@ Set `SITE_USERNAME` and `SITE_PASSWORD` as GitHub Actions secrets on the reposit
 | `test:anonymous`         | Run home, product, cart, login tests in Desktop Chrome              |
 | `test:auth`              | Run setup (login) then auth + account tests with stored session     |
 | `test:mobile`            | Run home tests on Pixel 5 viewport                                  |
-| `test:visual`            | Run screenshot regression tests                                     |
-| `test:visual:update`     | Regenerate all visual baseline snapshots                            |
+| `test:visual`            | Run screenshot regression tests (compares against committed PNGs)   |
+| `test:visual:ci`         | Same as test:visual but skips snapshot comparison — used in CI      |
+| `test:visual:update`     | Regenerate all visual baseline snapshots (run on your Mac)          |
 | `test:api`               | Run REST API contract tests (no browser)                            |
 | `test:integration`       | Run multi-step user flow tests                                      |
 | `test:mock`              | Run network intercept / route mock tests                            |
@@ -212,7 +213,9 @@ Set `SITE_USERNAME` and `SITE_PASSWORD` as GitHub Actions secrets on the reposit
 
 ## Updating Visual Baselines
 
-Run the following to regenerate all snapshot baselines:
+Visual baselines are macOS-specific (developer machines). CI runs on Linux and uses `test:visual:ci` which adds `--ignore-snapshots`, so CI never fails for missing or mismatched baselines but still exercises the page-load flow.
+
+To regenerate baselines on your Mac:
 
 ```bash
 npm run test:visual:update

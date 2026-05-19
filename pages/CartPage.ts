@@ -28,6 +28,13 @@ export class CartPage extends BasePage {
     return this.cartItems.count();
   }
 
+  async updateQuantity(index: number, quantity: number): Promise<void> {
+    const input = this.quantityInputs.nth(index);
+    await input.fill(String(quantity));
+    await input.press('Enter');
+    await this.page.waitForLoadState('networkidle');
+  }
+
   async removeItem(index: number): Promise<void> {
     await this.deleteButtons.nth(index).click();
     await this.page.waitForLoadState('networkidle');

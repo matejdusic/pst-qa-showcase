@@ -25,4 +25,10 @@ export class LoginPage extends BasePage {
     await this.passwordInput.fill(password);
     await this.submitButton.click();
   }
+
+  /** Login and wait for the post-login redirect to /account or /dashboard. */
+  async loginAndWait(email: string, password: string): Promise<void> {
+    await this.login(email, password);
+    await this.page.waitForURL(/\/(account|dashboard)/, { timeout: 15000 });
+  }
 }

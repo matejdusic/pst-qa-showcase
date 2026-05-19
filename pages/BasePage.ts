@@ -1,20 +1,20 @@
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
+/**
+ * Shared base for every page object.
+ * Subclasses receive the Playwright Page and call super(page) to wire it up.
+ * Declared as a class (not just a type) so subclasses can extend it and inherit
+ * shared helpers and the universal `body` locator.
+ */
 export class BasePage {
-  constructor(protected readonly page: Page) {}
+  readonly body: Locator;
 
-  async waitForLoadState(): Promise<void> {
-    await this.page.waitForLoadState('networkidle');
+  constructor(protected readonly page: Page) {
+    this.body = page.locator('body');
   }
 
-  async dismissOverlays(): Promise<void> {
-    try {
-      await this.page
-        .locator('[aria-label*="cookie"], [class*="consent"], button:has-text("Accept")')
-        .first()
-        .click({ timeout: 2000 });
-    } catch {
-      // no overlay present
-    }
+  /** Wait for network idle — useful after navigations or actions that trigger XHRs. */
+  async waitForLoadState(): Promise<void> {
+    await this.page.waitForLoadState('networkidle');
   }
 }

@@ -1,10 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+// API tests run without a browser context. They use Playwright's built-in
+// request fixture (via global fetch) to verify the REST contract directly.
 const API_BASE = 'https://api.practicesoftwaretesting.com';
+const PRODUCTS_ENDPOINT = `${API_BASE}/products`;
+const LOGIN_ENDPOINT = `${API_BASE}/users/login`;
 
 test.describe('API Contract Tests', () => {
   test('TC-024: product listing returns valid schema', async () => {
-    const res = await fetch(`${API_BASE}/products`, {
+    const res = await fetch(PRODUCTS_ENDPOINT, {
       headers: { Accept: 'application/json' },
     });
     expect(res.ok).toBe(true);
@@ -18,7 +22,7 @@ test.describe('API Contract Tests', () => {
   });
 
   test('TC-025: search API returns matching products', async () => {
-    const res = await fetch(`${API_BASE}/products?q=Pliers`, {
+    const res = await fetch(`${PRODUCTS_ENDPOINT}?q=Pliers`, {
       headers: { Accept: 'application/json' },
     });
     expect(res.ok).toBe(true);
@@ -30,15 +34,15 @@ test.describe('API Contract Tests', () => {
   });
 
   test('TC-026: auth endpoint returns access token', async () => {
-    const res = await fetch(`${API_BASE}/users/login`, {
+    const res = await fetch(LOGIN_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
       body: JSON.stringify({
-        email: 'customer@practicesoftwaretesting.com',
-        password: 'welcome01',
+        email: process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+        password: process.env.SITE_PASSWORD || 'welcome01',
       }),
     });
     expect(res.ok).toBe(true);

@@ -1,18 +1,18 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/pageFixtures';
 
 test.describe('Network Mock / Intercept', () => {
-  test('TC-029: page renders with images blocked', async ({ page }) => {
+  test('TC-029: page renders with images blocked', async ({ homePage, page }) => {
     await page.route('**/*.{jpg,jpeg,png,gif,webp,svg}', (route) => route.abort());
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await homePage.goto();
     // Page structure should still be present even without images
-    await expect(page.locator('[data-test="product-name"]').first()).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(homePage.firstProductCard).toBeVisible({ timeout: 15000 });
   });
 
-  test('TC-030: intercepted product API returns mock data gracefully', async ({ page }) => {
-    await page.route('**/api/products**', (route) => {
+  test('TC-030: intercepted product API returns mock data gracefully', async ({
+    homePage,
+    page,
+  }) => {
+    await page.route('**/products**', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -30,9 +30,8 @@ test.describe('Network Mock / Intercept', () => {
         }),
       });
     });
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    // Page should load without crashing
-    await expect(page.locator('body')).toBeVisible();
+    await homePage.goto();
+    // Page should load without crashing — body always renders even on error.
+    await expect(homePage.body).toBeVisible();
   });
 });

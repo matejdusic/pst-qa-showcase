@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/pageFixtures';
 
-// Stable product ID on practicesoftwaretesting.com
+// Stable product ID on practicesoftwaretesting.com (Combination Pliers)
 const PRODUCT_ID = '01KRXJRPSQT6WT1J2VKCH86Y82';
 
 test.describe('Product — Detail Page', () => {
@@ -12,7 +12,7 @@ test.describe('Product — Detail Page', () => {
   test('TC-007: product price is displayed', async ({ productPage }) => {
     await productPage.goto(PRODUCT_ID);
     await expect.soft(productPage.price).toBeVisible();
-    const priceText = await productPage.price.textContent();
+    const priceText = (await productPage.price.textContent()) ?? '';
     expect(priceText).toMatch(/\d/);
   });
 
@@ -20,12 +20,12 @@ test.describe('Product — Detail Page', () => {
     await productPage.goto(PRODUCT_ID);
     await expect(productPage.addToCartButton).toBeVisible();
     await productPage.addToCart();
-    // Button should still be present after click (not navigate away)
-    await expect.soft(productPage.addToCartButton).toBeVisible();
+    // Button should still be present after click (no navigation)
+    await expect(productPage.addToCartButton).toBeVisible();
   });
 
   test('TC-009: product description is visible', async ({ productPage }) => {
     await productPage.goto(PRODUCT_ID);
-    await expect.soft(productPage.productDescription).toBeVisible();
+    await expect(productPage.productDescription).toBeVisible();
   });
 });
