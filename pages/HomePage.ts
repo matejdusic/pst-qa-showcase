@@ -40,42 +40,49 @@ export class HomePage extends BasePage {
   }
 
   /**
-   * Open the mobile hamburger menu if the navbar is currently collapsed.
+   * Open the mobile hamburger menu (navbar collapse) if needed.
    *
-   * Detection is viewport-based: Bootstrap collapses the navbar below the `lg`
-   * breakpoint (992px). On desktop the toggle button is hidden via CSS, so
-   * checking `searchInput.isVisible()` was unreliable — during hydration the
-   * input can briefly report hidden on desktop and we'd try to click a
-   * permanently-hidden toggle. Viewport width is stable and never lies.
+   * Note: the search input is NOT inside the navbar — it lives in `#filters`,
+   * a separate Bootstrap collapse that the site only shows on `md+` viewports
+   * (≥768px). There is no mobile toggle for the search/filters sidebar, so
+   * search is effectively desktop-only on PST. This helper only opens the
+   * navbar (Home / Categories / Contact / Sign in) and uses `nav-categories`
+   * as the visibility signal — clicking the toggle while waiting on the
+   * search input would never succeed on mobile.
    *
-   * The site's Bootstrap collapse JS sometimes doesn't hook into the toggle in
-   * time (observed on Pixel 5 emulation in Playwright), so after clicking we
-   * fall back to forcing the `.show` class on the collapse target.
+   * Bootstrap's collapse JS occasionally misses the click on Pixel 5
+   * emulation; if the navbar hasn't expanded within 2s we add `.show`
+   * directly to `#navbarSupportedContent`.
    */
-  async openMobileNavIfNeeded(): Promise<void> {
+  async openMobileNavbarIfNeeded(): Promise<void> {
     const viewport = this.page.viewportSize();
     if (!viewport || viewport.width >= 992) return;
     await this.mobileNavToggle.waitFor({ state: 'visible', timeout: 5000 });
     await this.mobileNavToggle.click();
     try {
-      await this.searchInput.waitFor({ state: 'visible', timeout: 2000 });
+      await this.categoriesNavButton.waitFor({ state: 'visible', timeout: 2000 });
     } catch {
-      // Bootstrap's collapse handler didn't run in time. Open the menu manually.
       await this.page.evaluate(() => {
         document.querySelector('#navbarSupportedContent')?.classList.add('show');
       });
-      await this.searchInput.waitFor({ state: 'visible', timeout: 5000 });
+      await this.categoriesNavButton.waitFor({ state: 'visible', timeout: 5000 });
     }
   }
 
+  /** Returns true when the search input is present and visible. PST hides it on mobile. */
+  async isSearchAvailable(): Promise<boolean> {
+    return this.searchInput.isVisible();
+  }
+
   async search(term: string): Promise<void> {
-    await this.openMobileNavIfNeeded();
+    // Search is in #filters (desktop-only). No mobile toggle exists on PST,
+    // so callers should guard with isSearchAvailable() on mobile viewports.
     await this.searchInput.fill(term);
     await this.searchButton.click();
   }
 
   async filterByCategory(name: string): Promise<void> {
-    await this.openMobileNavIfNeeded();
+    await this.openMobileNavbarIfNeeded();
     // The Categories menu is a dropdown — open it before its items become clickable.
     await this.categoriesNavButton.click();
     await this.categoryLink(name).click();

@@ -9,7 +9,15 @@ test.describe('Home — Catalogue', () => {
     await expect(homePage.firstProductCard).toBeVisible();
   });
 
-  test('TC-002: search returns relevant results', async ({ homePage }) => {
+  test('TC-002: search returns relevant results', async ({ homePage, page }) => {
+    // PST hides the search/filters sidebar (#filters) on viewports below
+    // the Bootstrap `md` breakpoint and provides no mobile toggle for it.
+    // The catalogue itself is still tested on mobile (TC-001, TC-005);
+    // search specifically is a desktop-only feature on this site.
+    test.skip(
+      (page.viewportSize()?.width ?? 0) < 768,
+      'Search is desktop-only on PST (#filters sidebar is hidden below md)'
+    );
     await homePage.goto();
     await homePage.search('Pliers');
     await homePage.waitForProducts();
