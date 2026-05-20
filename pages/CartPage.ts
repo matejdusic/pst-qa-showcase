@@ -1,34 +1,41 @@
 import { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
+/**
+ * Cart page — note: PST has merged the cart UI into the /checkout route.
+ * There is no `/cart` path anymore (it redirects to `/`). The cart is the
+ * first table on /checkout, with login/guest checkout forms below it.
+ */
 export class CartPage extends BasePage {
-  readonly pageTitle: Locator;
+  /** Cart-quantity badge in the navbar — single source of truth for "how many items?". */
+  readonly cartBadge: Locator;
+  /** One span per cart row holding the product name. */
   readonly cartItems: Locator;
   readonly totalPrice: Locator;
-  readonly proceedButton: Locator;
-  readonly emptyCartMessage: Locator;
   readonly quantityInputs: Locator;
+  /** Red "X" remove button on each cart row (no data-test on the site). */
   readonly deleteButtons: Locator;
+  readonly proceedButton: Locator;
+  readonly continueShoppingButton: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.pageTitle = page.locator('[data-test="page-title"]');
-    this.cartItems = page.locator('[data-test="cart-item"]');
+    this.cartBadge = page.locator('[data-test="cart-quantity"]');
+    this.cartItems = page.locator('[data-test="product-title"]');
     this.totalPrice = page.locator('[data-test="cart-total"]');
-    this.proceedButton = page.locator('[data-test="proceed-1"]');
-    this.emptyCartMessage = page.getByText(/your cart is empty/i);
     this.quantityInputs = page.locator('[data-test="product-quantity"]');
-    this.deleteButtons = page.locator('[data-test="delete-product"]');
+    this.deleteButtons = page.locator('a.btn.btn-danger');
+    this.proceedButton = page.locator('[data-test="proceed-1"]');
+    this.continueShoppingButton = page.locator('[data-test="continue-shopping"]');
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/cart');
-    // Wait for the cart page chrome to render. Either the page title appears
-    // or the cart-empty / items state. Whichever lands first.
+    await this.page.goto('/checkout', { waitUntil: 'domcontentloaded' });
+    // Cart UI hydrates after the Angular router resolves. Either the cart
+    // shows real items or the cart-total row renders with $0.
     await Promise.race([
-      this.pageTitle.waitFor({ timeout: 10000 }),
+      this.totalPrice.waitFor({ timeout: 10000 }),
       this.cartItems.first().waitFor({ timeout: 10000 }),
-      this.emptyCartMessage.waitFor({ timeout: 10000 }),
     ]).catch(() => null);
   }
 
@@ -45,10 +52,8 @@ export class CartPage extends BasePage {
   async removeItem(index: number): Promise<void> {
     const before = await this.cartItems.count();
     await this.deleteButtons.nth(index).click();
-    // Cart updates client-side; wait for the row to actually disappear
-    // rather than a generic network signal.
     await this.page.waitForFunction(
-      (n) => document.querySelectorAll('[data-test="cart-item"]').length < n,
+      (n) => document.querySelectorAll('[data-test="product-title"]').length < n,
       before,
       { timeout: 10000 }
     );

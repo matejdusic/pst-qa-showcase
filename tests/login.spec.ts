@@ -17,7 +17,7 @@ test.describe('Login', () => {
   test('TC-016: valid credentials redirect to account', async ({ loginPage, page }) => {
     await loginPage.goto();
     await loginPage.loginAndWait(
-      process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+      process.env.SITE_USERNAME || 'customer2@practicesoftwaretesting.com',
       process.env.SITE_PASSWORD || 'welcome01'
     );
     await expect(page).toHaveURL(/\/(account|dashboard)/);

@@ -17,7 +17,7 @@ test.describe('Integration Flows', () => {
   test('TC-028: login → account navigation flow', async ({ loginPage, accountPage, page }) => {
     await loginPage.goto();
     await loginPage.loginAndWait(
-      process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+      process.env.SITE_USERNAME || 'customer2@practicesoftwaretesting.com',
       process.env.SITE_PASSWORD || 'welcome01'
     );
     await expect(page).not.toHaveURL(/auth\/login/);

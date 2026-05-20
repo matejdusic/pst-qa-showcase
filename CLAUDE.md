@@ -157,15 +157,18 @@ expect(criticalViolations).toHaveLength(0);
 
 ## Test Credentials
 
-| Role     | Email                                  | Password    |
-|----------|----------------------------------------|-------------|
-| Customer | customer@practicesoftwaretesting.com   | welcome01   |
-| Admin    | admin@practicesoftwaretesting.com      | AKZUThph6   |
+| Role             | Email                                   | Password    |
+|------------------|-----------------------------------------|-------------|
+| Customer (use this) | customer2@practicesoftwaretesting.com | welcome01   |
+| Customer (locked)   | customer@practicesoftwaretesting.com  | welcome01   |
+| Admin               | admin@practicesoftwaretesting.com     | welcome01   |
 
-In CI, credentials are read from environment variables to avoid hardcoding secrets:
+The default `customer@` account is frequently locked out because the entire QA practice community shares it and the site enforces lockout after too many failed attempts. The suite uses `customer2@` everywhere, which has been stable across runs. If `customer2@` also gets locked, try `customer3@`, `customer4@`, etc., or register a fresh user per run via `POST /users/register`.
+
+In CI, credentials are read from environment variables so secrets aren't hardcoded:
 
 ```ts
-process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com'
+process.env.SITE_USERNAME || 'customer2@practicesoftwaretesting.com'
 process.env.SITE_PASSWORD || 'welcome01'
 ```
 
@@ -268,3 +271,6 @@ The allowlist lives in `tests/a11y.spec.ts` as `KNOWN_SITE_DEFECTS`. When the si
 - **Mobile navbar.** On Pixel 5 the search input and category nav are collapsed under a `.navbar-toggler` hamburger button. `HomePage.openMobileNavIfNeeded()` opens it before any mobile flow.
 - **SPA loading is asynchronous.** Every `goto()` waits for a specific element (product title, page title, email input) — `waitForLoadState('networkidle')` hangs forever because of long-polling.
 - **Cart writes are async.** `ProductPage.addToCart()` waits for the success toast before returning so `cartPage.goto()` doesn't race the cart-state update.
+- **Cart lives at `/checkout`.** PST removed the standalone `/cart` route — it now redirects to `/`. `CartPage.goto()` navigates to `/checkout`, where the cart is the first table on the page.
+- **Cart selectors.** Each cart row exposes `[data-test="product-title"]`, `[data-test="product-quantity"]`, `[data-test="product-price"]`, `[data-test="line-price"]`. The grand total is `[data-test="cart-total"]`. The remove button is a `<a class="btn btn-danger">` — no data-test attribute, hence the class selector in `CartPage.deleteButtons`.
+- **Mobile navbar.** Bootstrap's collapse JS sometimes fails to register a click handler on Pixel 5 emulation. `openMobileNavIfNeeded()` clicks the toggle, then falls back to adding `.show` directly to `#navbarSupportedContent` if the menu doesn't expand within 2s.

@@ -41,7 +41,7 @@ test.describe('API Contract Tests', () => {
         Accept: 'application/json',
       },
       body: JSON.stringify({
-        email: process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+        email: process.env.SITE_USERNAME || 'customer2@practicesoftwaretesting.com',
         password: process.env.SITE_PASSWORD || 'welcome01',
       }),
     });

@@ -20,7 +20,9 @@ setup('authenticate', async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
   await loginPage.loginAndWait(
-    process.env.SITE_USERNAME || 'customer@practicesoftwaretesting.com',
+    // customer@ is regularly locked out by other CI/demo runs hammering it;
+    // customer2 is the stable demo account.
+    process.env.SITE_USERNAME || 'customer2@practicesoftwaretesting.com',
     process.env.SITE_PASSWORD || 'welcome01'
   );
   await page.context().storageState({ path: authFile });

@@ -47,13 +47,25 @@ export class HomePage extends BasePage {
    * checking `searchInput.isVisible()` was unreliable — during hydration the
    * input can briefly report hidden on desktop and we'd try to click a
    * permanently-hidden toggle. Viewport width is stable and never lies.
+   *
+   * The site's Bootstrap collapse JS sometimes doesn't hook into the toggle in
+   * time (observed on Pixel 5 emulation in Playwright), so after clicking we
+   * fall back to forcing the `.show` class on the collapse target.
    */
   async openMobileNavIfNeeded(): Promise<void> {
     const viewport = this.page.viewportSize();
     if (!viewport || viewport.width >= 992) return;
     await this.mobileNavToggle.waitFor({ state: 'visible', timeout: 5000 });
     await this.mobileNavToggle.click();
-    await this.searchInput.waitFor({ state: 'visible', timeout: 5000 });
+    try {
+      await this.searchInput.waitFor({ state: 'visible', timeout: 2000 });
+    } catch {
+      // Bootstrap's collapse handler didn't run in time. Open the menu manually.
+      await this.page.evaluate(() => {
+        document.querySelector('#navbarSupportedContent')?.classList.add('show');
+      });
+      await this.searchInput.waitFor({ state: 'visible', timeout: 5000 });
+    }
   }
 
   async search(term: string): Promise<void> {
