@@ -15,7 +15,35 @@ type PageFixtures = {
   accountPage: AccountPage;
 };
 
-export const test = base.extend<PageFixtures>({
+type WorkerFixtures = {
+  /**
+   * A live, valid product ID fetched from the PST API once per worker.
+   * The seeded products on practicesoftwaretesting.com rotate when the
+   * database is rebuilt, so hardcoding an ID makes the suite flaky. Tests
+   * that need a specific product use this fixture instead.
+   */
+  productId: string;
+};
+
+const PRODUCTS_API = 'https://api.practicesoftwaretesting.com/products';
+
+export const test = base.extend<PageFixtures, WorkerFixtures>({
+  productId: [
+    async ({}, use) => {
+      const res = await fetch(PRODUCTS_API, { headers: { Accept: 'application/json' } });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch products from ${PRODUCTS_API}: ${res.status}`);
+      }
+      const data = (await res.json()) as { data?: Array<{ id: string }> };
+      const id = data.data?.[0]?.id;
+      if (!id) {
+        throw new Error(`No products returned from ${PRODUCTS_API}`);
+      }
+      await use(id);
+    },
+    { scope: 'worker' },
+  ],
+
   homePage: async ({ page }, use) => {
     await use(new HomePage(page));
   },

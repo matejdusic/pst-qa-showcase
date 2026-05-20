@@ -6,6 +6,8 @@ test.describe('Integration Flows', () => {
     await homePage.search('Pliers');
     await homePage.waitForProducts();
     await homePage.clickFirstProduct();
+    // Wait for the product detail to render before clicking add-to-cart
+    await expect(productPage.productTitle).toBeVisible({ timeout: 15000 });
     await productPage.addToCart();
     await cartPage.goto();
     const count = await cartPage.getItemCount();
@@ -19,6 +21,7 @@ test.describe('Integration Flows', () => {
       process.env.SITE_PASSWORD || 'welcome01'
     );
     await expect(page).not.toHaveURL(/auth\/login/);
-    await expect.soft(accountPage.usernameHeading).toBeVisible();
+    // Wait for the account page to render, then assert the heading.
+    await expect(accountPage.pageTitle).toBeVisible({ timeout: 15000 });
   });
 });

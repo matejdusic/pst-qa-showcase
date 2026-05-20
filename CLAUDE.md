@@ -225,18 +225,27 @@ This writes new PNG files into `tests/visual.spec.ts-snapshots/`. Commit the upd
 
 ---
 
-## Known Good Product IDs
+## Product IDs Are Fetched Dynamically
 
-`PRODUCT_ID = '01KRZM041Y6PJ5NSD95ET3KWPN'` is used across `product.spec.ts`, `cart.spec.ts`, and `a11y.spec.ts`. This is the current Combination Pliers ID on practicesoftwaretesting.com — verified live via browser inspection. **Heads up:** the site can rotate IDs when seeded data is rebuilt, so if these tests start failing with "product-name not visible", re-fetch a fresh ID via the API.
+The PST site rebuilds its seed database periodically, which rotates every product ID. Hardcoded IDs went stale within ~24 hours during the development of this project. Instead of chasing the ID, the suite fetches a live one from the API once per worker via the `productId` fixture in `fixtures/pageFixtures.ts`.
 
-To find other stable IDs, query the API directly:
+Any test that needs a real product simply pulls it in:
 
-```bash
-curl "https://api.practicesoftwaretesting.com/api/products" \
-  -H "Accept: application/json" | jq '.data[] | {id, name}'
+```ts
+test('TC-006: product detail page loads', async ({ productPage, productId }) => {
+  await productPage.goto(productId);
+  await expect(productPage.productTitle).toBeVisible();
+});
 ```
 
-Use the `id` field from the response as the product ID in `page.goto('/product/<id>')`.
+The fixture is worker-scoped, so the API is hit once per Playwright project. With `workers: process.env.CI ? 1 : undefined`, CI runs make exactly one extra API call per job.
+
+If you need to inspect the live catalogue manually:
+
+```bash
+curl "https://api.practicesoftwaretesting.com/products" \
+  -H "Accept: application/json" | jq '.data[] | {id, name}'
+```
 
 ---
 

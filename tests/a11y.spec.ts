@@ -1,8 +1,6 @@
 import { test, expect } from '../fixtures/pageFixtures';
 import { getCriticalViolations } from '../utils/testHelpers';
 
-const PRODUCT_ID = '01KRZM041Y6PJ5NSD95ET3KWPN';
-
 /**
  * Known site defects detected by axe-core. These are real WCAG violations
  * on practicesoftwaretesting.com, not problems in our test code. They are
@@ -25,8 +23,8 @@ test.describe('Accessibility — WCAG 2.0', () => {
     expect(criticalViolations.map((v) => v.id)).toEqual([]);
   });
 
-  test('TC-032: product page passes WCAG 2.0', async ({ productPage, page }) => {
-    await productPage.goto(PRODUCT_ID);
+  test('TC-032: product page passes WCAG 2.0', async ({ productPage, productId, page }) => {
+    await productPage.goto(productId);
     const criticalViolations = await getCriticalViolations(page);
     expect(criticalViolations.map((v) => v.id)).toEqual([]);
   });

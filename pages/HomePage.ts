@@ -41,13 +41,19 @@ export class HomePage extends BasePage {
 
   /**
    * Open the mobile hamburger menu if the navbar is currently collapsed.
-   * On desktop viewports the navigation is always visible, so this is a no-op.
+   *
+   * Detection is viewport-based: Bootstrap collapses the navbar below the `lg`
+   * breakpoint (992px). On desktop the toggle button is hidden via CSS, so
+   * checking `searchInput.isVisible()` was unreliable — during hydration the
+   * input can briefly report hidden on desktop and we'd try to click a
+   * permanently-hidden toggle. Viewport width is stable and never lies.
    */
   async openMobileNavIfNeeded(): Promise<void> {
-    if (!(await this.searchInput.isVisible())) {
-      await this.mobileNavToggle.click();
-      await this.searchInput.waitFor({ timeout: 5000 });
-    }
+    const viewport = this.page.viewportSize();
+    if (!viewport || viewport.width >= 992) return;
+    await this.mobileNavToggle.waitFor({ state: 'visible', timeout: 5000 });
+    await this.mobileNavToggle.click();
+    await this.searchInput.waitFor({ state: 'visible', timeout: 5000 });
   }
 
   async search(term: string): Promise<void> {

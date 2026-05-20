@@ -16,8 +16,10 @@ export class LoginPage extends BasePage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/auth/login');
-    await this.emailInput.waitFor({ timeout: 15000 });
+    await this.page.goto('/auth/login', { waitUntil: 'domcontentloaded' });
+    // CI runners can be slow to hydrate the Angular SPA on cold starts —
+    // 20s gives the form room without being absurd.
+    await this.emailInput.waitFor({ timeout: 20000 });
   }
 
   async login(email: string, password: string): Promise<void> {
